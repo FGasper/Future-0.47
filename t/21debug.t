@@ -43,17 +43,6 @@ like( warnings {
    qr/^Future=\S+ was constructed at \Q$0\E line $LINE and was lost near \Q$0\E line (?:$LOSTLINE|${\($LINE+1)}) before it was ready\.?$/,
    'Lost Future raises a warning' );
 
-my $THENLINE;
-my $SEQLINE;
-like( warnings {
-      $LINE = __LINE__; my $f1 = Future->new;
-      $THENLINE = __LINE__; my $fseq = $f1->then( sub { } ); undef $fseq;
-      $SEQLINE = __LINE__; $f1->done;
-   },
-   qr/^Future=\S+ was constructed at \Q$0\E line $THENLINE and was lost near \Q$0\E line (?:$SEQLINE|$THENLINE) before it was ready\.?
-Future=\S+ \(constructed at \Q$0\E line $LINE\) lost a sequence Future at \Q$0\E line $SEQLINE\.?$/,
-   'Lost sequence Future raises warning' );
-
 like( warnings {
       $LINE = __LINE__; my $f = Future->fail("Failed!");
       undef $f;

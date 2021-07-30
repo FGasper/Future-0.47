@@ -280,8 +280,14 @@ sub new
 my $GLOBAL_END;
 END { $GLOBAL_END = 1; }
 
+sub DESTROY_normal {
+   return if $GLOBAL_END;
+
+   $_[0]->cancel() if !$_[0]{ready} && !$_[0]{cancelled};
+}
+
 sub DESTROY_debug {
-   my $self = shift;
+   my ($self) = @_;
    return if $GLOBAL_END;
    return if $self->{ready} and ( $self->{reported} or !$self->{failure} );
 
@@ -298,8 +304,11 @@ sub DESTROY_debug {
    elsif( !$self->{ready} ) {
       warn "${\$self->__selfstr} was $self->{constructed_at} and was lost near $lost_at before it was ready.\n";
    }
+
+    &DESTROY_normal;
 }
-*DESTROY = \&DESTROY_debug if DEBUG;
+
+*DESTROY = DEBUG ? \&DESTROY_debug : \&DESTROY_normal;
 
 =head2 done I<(class method)>
 
